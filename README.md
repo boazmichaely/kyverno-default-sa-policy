@@ -4,7 +4,7 @@ This repository contains a Kyverno policy to enforce explicit service account sp
 
 ## Files
 
-- **`kyverno-policy-v3-simple.yaml`** - The Kyverno ClusterPolicy that enforces explicit serviceAccountName specification
+- **`policy-require-explicit-service-account.yaml`** - The Kyverno ClusterPolicy that enforces explicit serviceAccountName specification
 - **`kyverno-violation-report.sh`** - Bash script to generate a clean report of policy violations organized by namespace
 - **`kyverno-values.yaml`** - Helm values file for installing Kyverno on OpenShift with proper security context configuration
 
@@ -39,7 +39,7 @@ helm install kyverno kyverno/kyverno -n kyverno --create-namespace -f kyverno-va
 
 ```bash
 # Apply the policy in Audit mode
-oc apply -f kyverno-policy-v3-simple.yaml
+oc apply -f policy-require-explicit-service-account.yaml
 
 # To enforce the policy (blocks non-compliant resources), edit the policy:
 oc patch clusterpolicy require-explicit-service-account --type='merge' -p='{"spec":{"validationFailureAction":"Enforce"}}'
