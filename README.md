@@ -1,6 +1,6 @@
 # Kyverno Default Service Account Policy
 
-This repository contains a Kyverno policy to enforce explicit service account specification and prevent the use of default service accounts in Kubernetes/OpenShift workloads.
+This repository contains a Kyverno policy to identify workloads which do not specify a  service account name (hence using the default SA).
 
 ## Files
 
@@ -10,9 +10,9 @@ This repository contains a Kyverno policy to enforce explicit service account sp
 
 ## Policy Overview
 
-The policy `require-explicit-service-account` prevents workloads from using the default service account by:
+The policy `require-explicit-service-account` catches workloads that use the default service account by:
 
-1. **Admission Control**: Blocks creation/update of controllers (Deployment, DaemonSet, StatefulSet, Job) that don't explicitly specify a `serviceAccountName` or set it to "default"
+1. **Admission Control**: Audits the creation/update of controllers (Deployment, DaemonSet, StatefulSet, Job) that don't explicitly specify a `serviceAccountName` or set it to "default"
 2. **Background Scanning**: Identifies existing pods using the default service account
 
 ### Policy Rules
@@ -20,7 +20,7 @@ The policy `require-explicit-service-account` prevents workloads from using the 
 - **`require-explicit-serviceaccount-controllers`**: Validates Deployment, DaemonSet, StatefulSet, and Job resources
 - **`require-explicit-serviceaccount-pods`**: Validates Pod resources (for background scanning)
 
-The policy runs in `Audit` mode by default. Change `validationFailureAction` to `Enforce` to block non-compliant resources.
+
 
 ## Installation
 
@@ -68,7 +68,7 @@ The script excludes certain namespaces from the report. Edit the `EXCLUDED_NAMES
 EXCLUDED_NAMESPACES="backend|default|frontend|kyverno|medical|operations|payments|stackrox"
 ```
 
-This is currently tuned to hide ACS (Advanced Cluster Security) internal demo applications and system namespaces.
+This is currently tuned to hide RHACS (Red Hat Advanced Cluster Security) internal demo applications .
 
 ### View Policy Status
 
@@ -118,11 +118,6 @@ This catches the root cause at admission time rather than after Kubernetes auto-
    oc get events -n kyverno
    ```
 
-### Script Shows Empty Namespaces
-
-This usually means resources were filtered out. Check:
-- The `acs-team-temp-dev.internal` filter in the script
-- Whether the violating resources are actually controllers vs individual pods
 
 ## Security Context Notes
 
