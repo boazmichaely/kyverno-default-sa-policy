@@ -1,6 +1,6 @@
 # Kyverno Default Service Account Policy
 
-This repository contains a Kyverno policy to identify workloads which do not specify a  service account name (hence using the default SA).
+This repository helps identify OOTB OpenShift workloads which do not specify a  service account name (hence using the default SA).
 
 ## Files
 
@@ -57,8 +57,7 @@ The script will:
 - Show violating workloads organized by namespace
 - Trace pods back to their root controllers (Deployment, DaemonSet, etc.)
 - Identify static pods separately
-- Exclude specified namespaces (configurable in the script)
-- Filter out automation resources
+- Exclude specified demo namespaces (configurable in the script) and automation resources used by ACS "Infra" services
 
 ### Configure Excluded Namespaces
 
@@ -128,4 +127,4 @@ The included `kyverno-values.yaml` is configured for OpenShift compatibility:
 
 ---
 
-*This project was developed with assistance from AI.*
+*This project was developed with assistance from Cursor AI.*
