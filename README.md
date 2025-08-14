@@ -38,11 +38,7 @@ helm install kyverno kyverno/kyverno -n kyverno --create-namespace -f kyverno-va
 ### 2. Apply the Policy
 
 ```bash
-# Apply the policy in Audit mode
 oc apply -f policy-require-explicit-service-account.yaml
-
-# To enforce the policy (blocks non-compliant resources), edit the policy:
-oc patch clusterpolicy require-explicit-service-account --type='merge' -p='{"spec":{"validationFailureAction":"Enforce"}}'
 ```
 
 ## Usage
@@ -66,11 +62,13 @@ The script will:
 
 ### Configure Excluded Namespaces
 
-Edit the `EXCLUDED_NAMESPACES` variable in `kyverno-violation-report.sh`:
+The script excludes certain namespaces from the report. Edit the `EXCLUDED_NAMESPACES` variable in `kyverno-violation-report.sh`:
 
 ```bash
 EXCLUDED_NAMESPACES="backend|default|frontend|kyverno|medical|operations|payments|stackrox"
 ```
+
+This is currently tuned to hide ACS (Advanced Cluster Security) internal demo applications and system namespaces.
 
 ### View Policy Status
 
@@ -83,42 +81,6 @@ oc describe cpol require-explicit-service-account
 
 # View policy reports (raw)
 oc get policyreports -A
-```
-
-## How to Fix Violations
-
-### For Controllers (Deployment, DaemonSet, etc.)
-
-Add explicit `serviceAccountName` to the pod template:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: my-app
-spec:
-  template:
-    spec:
-      serviceAccountName: my-custom-sa  # Add this line
-      containers:
-      - name: app
-        image: my-app:latest
-```
-
-### For Static Pods
-
-Edit the pod spec directly:
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: my-pod
-spec:
-  serviceAccountName: my-custom-sa  # Add this line
-  containers:
-  - name: app
-    image: my-app:latest
 ```
 
 ## Policy Logic
@@ -168,3 +130,7 @@ The included `kyverno-values.yaml` is configured for OpenShift compatibility:
 - Removes explicit `runAsUser` and `fsGroup` to let OpenShift assign UIDs
 - Maintains security best practices (non-root, read-only filesystem, dropped capabilities)
 - Uses `runAsNonRoot: true` and appropriate seccomp profiles
+
+---
+
+*This project was developed with assistance from AI.*
