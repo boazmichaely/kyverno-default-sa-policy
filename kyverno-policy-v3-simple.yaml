@@ -1,0 +1,54 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-explicit-service-account
+  annotations:
+    policies.kyverno.io/title: Require Explicit Service Account
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      Requires workloads to explicitly specify a serviceAccountName and prevents use of 'default'.
+      This catches the root cause at admission time rather than after Kubernetes populates defaults.
+spec:
+  background: true
+  validationFailureAction: Audit
+  rules:
+  - name: require-explicit-serviceaccount-controllers
+    match:
+      any:
+      - resources:
+          kinds:
+          - Deployment
+          - DaemonSet
+          - StatefulSet
+          - Job
+    validate:
+      message: "Workload must explicitly specify serviceAccountName in pod template and cannot use 'default'"
+      deny:
+        conditions:
+          any:
+          # Fail if serviceAccountName is not specified at all
+          - key: "{{ request.object.spec.template.spec.serviceAccountName || '' }}"
+            operator: Equals
+            value: ""
+          # Fail if serviceAccountName is explicitly set to 'default'
+          - key: "{{ request.object.spec.template.spec.serviceAccountName || '' }}"
+            operator: Equals
+            value: "default"
+
+
+  - name: require-explicit-serviceaccount-pods
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    validate:
+      message: "Pod uses default service account - parent controller should specify explicit serviceAccountName"
+      deny:
+        conditions:
+          any:
+          # For background scanning: catch pods that ended up with default SA
+          - key: "{{ request.object.spec.serviceAccountName || 'default' }}"
+            operator: Equals
+            value: "default"

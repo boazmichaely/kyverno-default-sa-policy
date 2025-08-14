@@ -1,0 +1,206 @@
+# Kyverno Helm Values for OpenShift
+# Optimized configuration for OpenShift compatibility and robustness
+
+# Global settings
+crds:
+  install: true
+
+# Main Kyverno controller configuration
+admissionController:
+  replicas: 2
+  
+  # Resource limits for stability
+  resources:
+    limits:
+      memory: 384Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  # OpenShift compatibility - let OpenShift assign UIDs
+  podSecurityContext:
+    runAsNonRoot: true
+  
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 443
+
+  # Enable metrics
+  metricsService:
+    create: true
+    type: ClusterIP
+    port: 8000
+
+# Background controller for policy reports
+backgroundController:
+  enabled: true
+  replicas: 1
+  
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+  
+  # OpenShift compatibility - let OpenShift assign UIDs
+  podSecurityContext:
+    runAsNonRoot: true
+    
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+
+# Reports controller for PolicyReports
+reportsController:
+  enabled: true
+  replicas: 1
+  
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+      
+  # OpenShift compatibility - let OpenShift assign UIDs
+  podSecurityContext:
+    runAsNonRoot: true
+    
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+
+# Cleanup controller
+cleanupController:
+  enabled: true
+  replicas: 1
+  
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+      
+  # OpenShift compatibility - let OpenShift assign UIDs
+  podSecurityContext:
+    runAsNonRoot: true
+    
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+
+# Global configuration
+config:
+  # Resource filters to avoid OpenShift-specific resource conflicts
+  resourceFilters:
+    - '[Event,*,*]'
+    - '[*,kube-system,*]'
+    - '[*,kube-public,*]'
+    - '[*,kube-node-lease,*]'
+    - '[Node,*,*]'
+    - '[APIService,*,*]'
+    - '[TokenReview,*,*]'
+    - '[SubjectAccessReview,*,*]'
+    - '[SelfSubjectAccessReview,*,*]'
+    - '[Binding,*,*]'
+    - '[ReplicaSet,*,*]'
+    - '[AdmissionReport,*,*]'
+    - '[ClusterAdmissionReport,*,*]'
+    - '[BackgroundScanReport,*,*]'
+    - '[ClusterBackgroundScanReport,*,*]'
+    # OpenShift-specific exclusions
+    - '[*,openshift-*,*]'
+    - '[*,machineconfiguration.openshift.io,*]'
+    - '[SecurityContextConstraints,*,*]'
+    - '[ImageStream,*,*]'
+    - '[BuildConfig,*,*]'
+    - '[Build,*,*]'
+    - '[DeploymentConfig,*,*]'
+    - '[Route,*,*]'
+    
+  # Exclude resources to prevent discovery issues
+  excludeGroupRole:
+    - 'system:*'
+    - 'cluster-admin'
+    
+  # Webhook timeouts
+  webhookTimeout: 10
+  
+  # Generate success events
+  generateSuccessEvents: false
+
+# Features configuration
+features:
+  admissionReports:
+    enabled: true
+  backgroundScan:
+    enabled: true
+  configMapCaching:
+    enabled: true
+  dumpPayload:
+    enabled: false
+  forceFailurePolicyIgnore:
+    enabled: false
+  logging:
+    enabled: true
+    verbosity: 2
+  omitEvents:
+    eventTypes:
+      - PolicyViolation
+      - PolicyApplied
+  policyExceptions:
+    enabled: true
+  protectManagedResources:
+    enabled: false
+  registryCredentialHelpers:
+    enabled: true
+  ttlController:
+    enabled: true
+  globalContext:
+    enabled: true
+
+# Grafana dashboard
+grafana:
+  enabled: false
+
+# Network policies
+networkPolicy:
+  enabled: false
+  
+# Test configuration
+test:
+  image:
+    registry: ghcr.io
+    repository: kyverno/kyverno
+    tag: latest
